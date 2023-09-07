@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33103.184
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWS", "TestWS\TestWS.csproj", "{3B4F323A-D59B-43FD-9924-48CC49D2C71C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWinForms", "TestWinForms\TestWinForms.csproj", "{BB3BC837-CAA1-4172-B8F9-34F010A15C52}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B4F323A-D59B-43FD-9924-48CC49D2C71C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B4F323A-D59B-43FD-9924-48CC49D2C71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B4F323A-D59B-43FD-9924-48CC49D2C71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B4F323A-D59B-43FD-9924-48CC49D2C71C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB3BC837-CAA1-4172-B8F9-34F010A15C52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB3BC837-CAA1-4172-B8F9-34F010A15C52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB3BC837-CAA1-4172-B8F9-34F010A15C52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB3BC837-CAA1-4172-B8F9-34F010A15C52}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FDBEB36E-CCE3-428F-B179-0C985A701E8D}
+	EndGlobalSection
+EndGlobal
