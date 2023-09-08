@@ -1,6 +1,7 @@
 using Eraz51;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -26,6 +27,35 @@ app.UseAuthorization();
 
 var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
 
+app.MapGet("/productCategories", (HttpContext httpContext, TestWSContext ctx) =>
+{
+    //   httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+    var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+    using var conn = new SqlConnection(cs);
+    var pcs = new List<ProductCategoryDTO>();
+    try
+    {
+        foreach (var pc in ctx.ProductCategories.OrderBy(x => x.ParentProductCategoryId))
+        {
+            var dto = new ProductCategoryDTO
+            (
+                pc.ProductCategoryId,
+                pc.ParentProductCategoryId,
+                pc.Name,
+                pc.ModifiedDate
+            );
+            pcs.Add(dto);
+        }
+    }
+    catch (Exception ex)
+    {
+        pcs.Add(new ProductCategoryDTO(0, 0, ex.Message, DateTime.MinValue));
+
+    }
+    return pcs.ToArray();
+})
+.RequireAuthorization();
+
 app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
 {
  //   httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
@@ -34,39 +64,50 @@ app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
     var ps = new List<ProductDTO>();
     try
     {
-        //conn.Open();
-        //var cmd = new SqlCommand();
-        //cmd.Connection = conn;
-        //cmd.CommandText = "SELECT ProductID, Name, ProductNumber, Color, ListPrice FROM[SalesLT].[Product]";
-        //using var rdr = cmd.ExecuteReader();
-        //while(rdr.Read())
         foreach (var p in ctx.Products)
         {
             var dto = new ProductDTO
             (
                 p.ProductId,
+                p.ProductCategoryId,
                 p.Name,
                 p.ProductNumber,
                 p.Color,
                 p.ListPrice
-            //rdr.GetInt32(0),
-            //rdr.GetString(1),
-            //rdr.GetString(2),
-            //rdr.IsDBNull(3) ? null : rdr.GetString(3),
-            //rdr.GetDecimal(4)
             );
             ps.Add(dto);
         }
     }
     catch (Exception ex)
     {
-        ps.Add(new ProductDTO(0, ex.Message, "", "", 0M));
-
+        return Results.Problem(ex.Message);
     }
-    return ps.ToArray();
+    return Results.Ok(ps.ToArray());
+})
+.RequireAuthorization();
+
+app.MapPut("/products/{id}", async (HttpContext httpContext, TestWSContext ctx, int id, ProductDTO dto) =>
+{
+    try
+    {
+        var product = await ctx.Products.FindAsync(id);
+        if (product is null) return Results.NotFound();
+        product.ProductNumber = dto.productNumber;
+        product.ProductCategoryId = dto.productCategoryId;
+        product.Color = dto.color;
+        product.ListPrice = dto.listPrice;
+        await ctx.SaveChangesAsync();
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+    return Results.NoContent();
+
 })
 .RequireAuthorization();
 
 app.Run();
 
-internal record ProductDTO(int ProductID, string Name, string ProductNumber, string? Color, decimal ListCost);
+public record ProductCategoryDTO(int productCategoryId, int? parentCategoryID, string name, DateTime modifiedDate);
+public record ProductDTO(int productId, int? productCategoryId, string name, string productNumber, string? color, decimal listPrice);
