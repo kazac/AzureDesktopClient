@@ -185,6 +185,7 @@
             dataGridView2.Location = new Point(0, 0);
             dataGridView2.MultiSelect = false;
             dataGridView2.Name = "dataGridView2";
+            dataGridView2.ReadOnly = true;
             dataGridView2.RowTemplate.Height = 25;
             dataGridView2.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView2.Size = new Size(729, 306);
@@ -195,30 +196,35 @@
             productCategoryIdDataGridViewTextBoxColumn1.DataPropertyName = "ProductCategoryId";
             productCategoryIdDataGridViewTextBoxColumn1.HeaderText = "ProductCategoryId";
             productCategoryIdDataGridViewTextBoxColumn1.Name = "productCategoryIdDataGridViewTextBoxColumn1";
+            productCategoryIdDataGridViewTextBoxColumn1.ReadOnly = true;
             // 
             // ProductId
             // 
             ProductId.DataPropertyName = "ProductId";
             ProductId.HeaderText = "Id";
             ProductId.Name = "ProductId";
+            ProductId.ReadOnly = true;
             // 
             // ListPrice
             // 
             ListPrice.DataPropertyName = "ListPrice";
             ListPrice.HeaderText = "List Price";
             ListPrice.Name = "ListPrice";
+            ListPrice.ReadOnly = true;
             // 
             // Color
             // 
             Color.DataPropertyName = "Color";
             Color.HeaderText = "Color";
             Color.Name = "Color";
+            Color.ReadOnly = true;
             // 
             // nameDataGridViewTextBoxColumn1
             // 
             nameDataGridViewTextBoxColumn1.DataPropertyName = "Name";
             nameDataGridViewTextBoxColumn1.HeaderText = "Name";
             nameDataGridViewTextBoxColumn1.Name = "nameDataGridViewTextBoxColumn1";
+            nameDataGridViewTextBoxColumn1.ReadOnly = true;
             nameDataGridViewTextBoxColumn1.Width = 500;
             // 
             // bsP

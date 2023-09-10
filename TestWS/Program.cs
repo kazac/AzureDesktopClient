@@ -17,9 +17,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 var cs = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 // add no tracking
-builder.Services.AddDbContext<TestWSContext>(options => 
-        options.UseSqlServer(cs, providerOptions => { providerOptions.EnableRetryOnFailure(); })
-        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+builder.Services.AddDbContext<TestWSContext>(options =>
+        options.UseSqlServer(cs, providerOptions => { providerOptions.EnableRetryOnFailure(); }));
+    //    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -30,12 +30,12 @@ var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
 app.MapGet("/productCategories", (HttpContext httpContext, TestWSContext ctx) =>
 {
     //   httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-    var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
-    using var conn = new SqlConnection(cs);
+    //var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+    //using var conn = new SqlConnection(cs);
     var pcs = new List<ProductCategoryDTO>();
     try
     {
-        foreach (var pc in ctx.ProductCategories.OrderBy(x => x.ParentProductCategoryId))
+        foreach (var pc in ctx.ProductCategories.AsNoTracking().OrderBy(x => x.ParentProductCategoryId))
         {
             var dto = new ProductCategoryDTO
             (
@@ -49,22 +49,21 @@ app.MapGet("/productCategories", (HttpContext httpContext, TestWSContext ctx) =>
     }
     catch (Exception ex)
     {
-        pcs.Add(new ProductCategoryDTO(0, 0, ex.Message, DateTime.MinValue));
-
+        return Results.Problem(ex.Message);
     }
-    return pcs.ToArray();
+    return Results.Ok(pcs.ToArray());
 })
 .RequireAuthorization();
 
 app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
 {
  //   httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-    var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
-    using var conn = new SqlConnection(cs);
+    //var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+    //using var conn = new SqlConnection(cs);
     var ps = new List<ProductDTO>();
     try
     {
-        foreach (var p in ctx.Products)
+        foreach (var p in ctx.Products.AsNoTracking())
         {
             var dto = new ProductDTO
             (
@@ -73,7 +72,8 @@ app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
                 p.Name,
                 p.ProductNumber,
                 p.Color,
-                p.ListPrice
+                p.ListPrice,
+                p.ModifiedDate
             );
             ps.Add(dto);
         }
@@ -86,16 +86,22 @@ app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
 })
 .RequireAuthorization();
 
-app.MapPut("/products/{id}", async (HttpContext httpContext, TestWSContext ctx, int id, ProductDTO dto) =>
+app.MapPut("/products", async (HttpContext httpContext, TestWSContext ctx, ProductDTO[] dtos) =>
 {
     try
     {
-        var product = await ctx.Products.FindAsync(id);
-        if (product is null) return Results.NotFound();
-        product.ProductNumber = dto.productNumber;
-        product.ProductCategoryId = dto.productCategoryId;
-        product.Color = dto.color;
-        product.ListPrice = dto.listPrice;
+        var dt = DateTime.Now;
+        foreach (var dto in dtos)
+        {
+            var product = await ctx.Products.FindAsync(dto.productId);
+            if (product is null) return Results.NotFound();
+            if (product.Name != dto.name) product.Name = dto.name;
+            if (product.ProductNumber != dto.productNumber) product.ProductNumber = dto.productNumber;
+            if (product.ProductCategoryId != dto.productCategoryId) product.ProductCategoryId = dto.productCategoryId;
+            if (product.Color != dto.color) product.Color = dto.color;
+            if (product.ListPrice != dto.listPrice) product.ListPrice = dto.listPrice;
+            product.ModifiedDate = dt;
+        }
         await ctx.SaveChangesAsync();
     }
     catch (Exception ex)
@@ -110,4 +116,4 @@ app.MapPut("/products/{id}", async (HttpContext httpContext, TestWSContext ctx, 
 app.Run();
 
 public record ProductCategoryDTO(int productCategoryId, int? parentCategoryID, string name, DateTime modifiedDate);
-public record ProductDTO(int productId, int? productCategoryId, string name, string productNumber, string? color, decimal listPrice);
+public record ProductDTO(int productId, int? productCategoryId, string name, string productNumber, string? color, decimal listPrice, DateTime modifiedDate);

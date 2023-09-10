@@ -57,11 +57,11 @@ namespace WinFormsApp1
                 vm.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResult.AccessToken);
                 this.btnLoad.DataBindings.Add(new System.Windows.Forms.Binding("Command", vm, "LoadCommand", true));
                 this.btnSave.DataBindings.Add(new System.Windows.Forms.Binding("Command", vm, "SaveCommand", true));
-                txtProductCategoryId.DataBindings.Add(new Binding("Text", vm.Products, nameof(Product.ProductCategoryId)));
-                txtProductId.DataBindings.Add(new Binding("Text", vm.Products, nameof(Product.ProductId)));
-                txtColor.DataBindings.Add(new Binding("Text", vm.Products, nameof(Product.Color)));
-                txtListCost.DataBindings.Add(new Binding("Text", vm.Products, nameof(Product.ListPrice)));
-                txtName.DataBindings.Add(new Binding("Text", vm.Products, nameof(Product.Name)));
+                txtProductId.DataBindings.Add(new Binding("Text", bsP, nameof(Product.ProductId)));
+                txtProductCategoryId.DataBindings.Add(new Binding("Text", bsP, nameof(Product.ProductCategoryId)));
+                txtColor.DataBindings.Add(new Binding("Text", bsP, nameof(Product.Color)));
+                txtListCost.DataBindings.Add(new Binding("Text", bsP, nameof(Product.ListPrice)));
+                txtName.DataBindings.Add(new Binding("Text", bsP, nameof(Product.Name)));
                 DataContext = vm;
 
                 treeProductCategories.Nodes.Add("0", "All");

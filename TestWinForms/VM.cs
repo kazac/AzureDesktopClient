@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Net.Http;
@@ -30,12 +31,13 @@ namespace WinFormsApp1
         private DateTime modifiedDate;
     }
 
-    public partial class Product : ObservableObject
+    public partial class Product : ObservableValidator
     {
         [ObservableProperty]
         int productId;
         [ObservableProperty]
         int? productCategoryId;
+        [MaxLength(50)]
         [ObservableProperty]
         string name;
         [ObservableProperty]
@@ -44,6 +46,14 @@ namespace WinFormsApp1
         string? color;
         [ObservableProperty]
         decimal listPrice;
+        public DateTime ModifiedDate { get; init; }
+        public DataRowState State { get; internal set; }
+
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if(State == DataRowState.Unchanged) State = DataRowState.Modified;
+        }
     }
 
     public partial class VM
@@ -52,9 +62,15 @@ namespace WinFormsApp1
         public string token = "";
         public VM()
         {
-            client.BaseAddress = new Uri("https://eraz51.azurewebsites.net");
+           client.BaseAddress = new Uri("https://eraz51.azurewebsites.net");
+           // client.BaseAddress = new Uri("https://localhost:7192");
             ProductCategories = new ObservableCollection<ProductCategory>();
             Products = new BindingList<Product>();
+        }
+
+        private void Products_ListChanged(object? sender, ListChangedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public ObservableCollection<ProductCategory> ProductCategories { get; private set; }
@@ -79,7 +95,7 @@ namespace WinFormsApp1
                     var content = await response.Content.ReadAsStringAsync();
                     var dto = JsonSerializer.Deserialize<ProductDTO[]>(content);
                     foreach (var x in dto)
-                        Products.Add(new Product() { ProductCategoryId = x.productCategoryId, ProductId = x.productId, Name = x.name, Color = x.color, ListPrice = x.listPrice, ProductNumber = x.productNumber});
+                        Products.Add(new Product() { ProductCategoryId = x.productCategoryId, ProductId = x.productId, Name = x.name, Color = x.color, ListPrice = x.listPrice, ProductNumber = x.productNumber,  ModifiedDate=x.modifiedDate, State = DataRowState.Unchanged});
                 }
             }
             catch (Exception ex) 
@@ -98,10 +114,11 @@ namespace WinFormsApp1
                 {
                     var dtos = new List<ProductDTO>();
                     foreach (var p in Products)
-                        dtos.Add(new ProductDTO(productCategoryId: p.ProductCategoryId, productId: p.ProductId, name: p.Name, color: p.Color, listPrice: p.ListPrice, productNumber: p.ProductNumber));
+                        if(p.State > DataRowState.Unchanged)
+                            dtos.Add(new ProductDTO(productCategoryId: p.ProductCategoryId, productId: p.ProductId, name: p.Name, color: p.Color, listPrice: p.ListPrice, productNumber: p.ProductNumber, modifiedDate: p.ModifiedDate));
 
                     var json = JsonSerializer.Serialize<ProductDTO[]>(dtos.ToArray());
-                    var content = new StringContent(json);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
                     response = await client.PutAsync("products", content);
                 }
             }
