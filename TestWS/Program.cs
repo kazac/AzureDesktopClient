@@ -57,12 +57,12 @@ app.MapGet("/productCategories", (HttpContext httpContext, TestWSContext ctx) =>
 
 app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
 {
- //   httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
     //var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
     //using var conn = new SqlConnection(cs);
     var ps = new List<ProductDTO>();
     try
     {
+        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
         foreach (var p in ctx.Products.AsNoTracking())
         {
             var dto = new ProductDTO
@@ -86,6 +86,31 @@ app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
 })
 .RequireAuthorization();
 
+app.MapGet("/products/{id}", (HttpContext httpContext, TestWSContext ctx, int id) =>
+{
+    try
+    {
+        var p = ctx.Products.AsNoTracking().Where(x => x.ProductId == id).FirstOrDefault();
+        if (p == null) return Results.NotFound(id);
+        var dto = new ProductDTO
+        (
+            p.ProductId,
+            p.ProductCategoryId,
+            p.Name,
+            p.ProductNumber,
+            p.Color,
+            p.ListPrice,
+            p.ModifiedDate
+        );
+        return Results.Ok(dto);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+})
+.RequireAuthorization();
+
 app.MapPut("/products", async (HttpContext httpContext, TestWSContext ctx, ProductDTO[] dtos) =>
 {
     try
@@ -95,6 +120,7 @@ app.MapPut("/products", async (HttpContext httpContext, TestWSContext ctx, Produ
         {
             var product = await ctx.Products.FindAsync(dto.productId);
             if (product is null) return Results.NotFound();
+            if (product.ModifiedDate != dto.modifiedDate) return Results.Problem($"concurrency id:{dto.productId}");
             if (product.Name != dto.name) product.Name = dto.name;
             if (product.ProductNumber != dto.productNumber) product.ProductNumber = dto.productNumber;
             if (product.ProductCategoryId != dto.productCategoryId) product.ProductCategoryId = dto.productCategoryId;
@@ -112,6 +138,7 @@ app.MapPut("/products", async (HttpContext httpContext, TestWSContext ctx, Produ
 
 })
 .RequireAuthorization();
+
 
 app.Run();
 
