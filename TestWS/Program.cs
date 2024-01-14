@@ -2,11 +2,13 @@ using Eraz51;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.Resource;
 using System;
+using System.Data;
 using System.Data.SqlTypes;
 using System.Drawing;
 using static System.Net.Mime.MediaTypeNames;
@@ -14,6 +16,9 @@ using static System.Net.Mime.MediaTypeNames;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+
+//builder.Services.AddAuthorizationBuilder()
+//  .AddPolicy("xxx", policy => policy.RequireRole("App.Read"));
 builder.Services.AddAuthorization();
 var cs = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 // add no tracking
@@ -55,34 +60,48 @@ app.MapGet("/productCategories", (HttpContext httpContext, TestWSContext ctx) =>
 })
 .RequireAuthorization();
 
-app.MapGet("/products", (HttpContext httpContext, TestWSContext ctx) =>
+app.MapGet("/productModels", (HttpContext httpContext, TestWSContext ctx) =>
 {
     //var cs = app.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
     //using var conn = new SqlConnection(cs);
-    var ps = new List<ProductDTO>();
+    var pms = new List<ProductModelDTO>();
     try
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-        foreach (var p in ctx.Products.AsNoTracking())
+        // httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+        foreach (var pm in ctx.ProductModels.Include(pm => pm.Products).AsNoTracking())
         {
-            var dto = new ProductDTO
+            var ps = new List<ProductDTO>();
+            foreach (var p in pm.Products)
+            {
+                var dtoP = new ProductDTO
+                (
+                    p.ProductId,
+                    p.ProductCategoryId,
+                    p.Name,
+                    p.ProductNumber,
+                    p.Color,
+                    p.ListPrice,
+                    p.ModifiedDate
+                );
+                ps.Add(dtoP);
+            }
+            var dto = new ProductModelDTO
             (
-                p.ProductId,
-                p.ProductCategoryId,
-                p.Name,
-                p.ProductNumber,
-                p.Color,
-                p.ListPrice,
-                p.ModifiedDate
+                pm.ProductModelId,
+                pm.Name,
+                pm.CatalogDescription,
+                pm.Rowguid,
+                pm.ModifiedDate,
+                ps.ToArray()
             );
-            ps.Add(dto);
+            pms.Add(dto);
         }
     }
     catch (Exception ex)
     {
         return Results.Problem(ex.Message);
     }
-    return Results.Ok(ps.ToArray());
+    return Results.Ok(pms.ToArray());
 })
 .RequireAuthorization();
 
@@ -144,3 +163,4 @@ app.Run();
 
 public record ProductCategoryDTO(int productCategoryId, int? parentCategoryID, string name, DateTime modifiedDate);
 public record ProductDTO(int productId, int? productCategoryId, string name, string productNumber, string? color, decimal listPrice, DateTime modifiedDate);
+public record ProductModelDTO(int productModelId, string name, string? catalogDescription, Guid rowguid, DateTime modifiedDate, ProductDTO[] products);

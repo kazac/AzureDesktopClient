@@ -57,6 +57,25 @@ namespace WinFormsApp1
         }
     }
 
+    public partial class ProductModel : ObservableValidator
+    {
+        [ObservableProperty]
+        public int productModelId;
+        [ObservableProperty]
+        public string name;
+        [ObservableProperty]
+        public string catalogDescription;
+        [ObservableProperty]
+        public Guid rowguid;
+        public DateTime ModifiedDate { get; init; }
+        public DataRowState State { get; internal set; }
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (State == DataRowState.Unchanged) State = DataRowState.Modified;
+        }
+    }
+
     public partial class VM
     {
         public HttpClient client = new();
@@ -64,8 +83,9 @@ namespace WinFormsApp1
         public VM()
         {
            client.BaseAddress = new Uri("https://eraz51.azurewebsites.net");
-           // client.BaseAddress = new Uri("https://localhost:7192");
+           //client.BaseAddress = new Uri("https://localhost:7192");
             ProductCategories = new ObservableCollection<ProductCategory>();
+            ProductModels = new BindingList<ProductModel>();
             Products = new BindingList<Product>();
         }
 
@@ -75,6 +95,7 @@ namespace WinFormsApp1
         }
 
         public ObservableCollection<ProductCategory> ProductCategories { get; private set; }
+        public BindingList<ProductModel> ProductModels { get; private set; }
         public BindingList<Product> Products { get; private set; }  
 
         [RelayCommand()]
@@ -91,13 +112,17 @@ namespace WinFormsApp1
                     foreach (var x in dto)
                         ProductCategories.Add(new ProductCategory() { ProductCategoryId = x.productCategoryId, ParentProductCategoryId = x.parentCategoryID, Name = x.name, ModifiedDate = x.modifiedDate });
                 }
-                {
-                    response = await client.GetAsync("products");
-                    var content = await response.Content.ReadAsStringAsync();
-                    var dto = JsonSerializer.Deserialize<ProductDTO[]>(content);
-                    foreach (var x in dto)
-                        Products.Add(new Product() { ProductCategoryId = x.productCategoryId, ProductId = x.productId, Name = x.name, Color = x.color, ListPrice = x.listPrice, ProductNumber = x.productNumber,  ModifiedDate=x.modifiedDate, State = DataRowState.Unchanged});
-                }
+                //{
+                //    response = await client.GetAsync("productModels");
+                //    var content = await response.Content.ReadAsStringAsync();
+                //    var dto = JsonSerializer.Deserialize<ProductModelDTO[]>(content);
+                //    foreach (var x in dto)
+                //    {
+                //        ProductModels.Add(new ProductModel() { ProductModelId = x.productModelId, Name = x.name, CatalogDescription = x.catalogDescription, Rowguid = x.rowguid, ModifiedDate = x.modifiedDate, State = DataRowState.Unchanged });
+                //        foreach (var y in x.products)
+                //            Products.Add(new Product() { ProductCategoryId = y.productCategoryId, ProductId = y.productId, Name = y.name, Color = y.color, ListPrice = y.listPrice, ProductNumber = y.productNumber, ModifiedDate = y.modifiedDate, State = DataRowState.Unchanged });
+                //    }
+                //}
             }
             catch (Exception ex) 
             {
