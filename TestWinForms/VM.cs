@@ -101,6 +101,7 @@ namespace WinFormsApp1
         [RelayCommand()]
         public async Task Load()
         {
+            Application.UseWaitCursor = true;
             var httpClient = new System.Net.Http.HttpClient();
             System.Net.Http.HttpResponseMessage response;
             try
@@ -112,20 +113,22 @@ namespace WinFormsApp1
                     foreach (var x in dto)
                         ProductCategories.Add(new ProductCategory() { ProductCategoryId = x.productCategoryId, ParentProductCategoryId = x.parentCategoryID, Name = x.name, ModifiedDate = x.modifiedDate });
                 }
-                //{
-                //    response = await client.GetAsync("productModels");
-                //    var content = await response.Content.ReadAsStringAsync();
-                //    var dto = JsonSerializer.Deserialize<ProductModelDTO[]>(content);
-                //    foreach (var x in dto)
-                //    {
-                //        ProductModels.Add(new ProductModel() { ProductModelId = x.productModelId, Name = x.name, CatalogDescription = x.catalogDescription, Rowguid = x.rowguid, ModifiedDate = x.modifiedDate, State = DataRowState.Unchanged });
-                //        foreach (var y in x.products)
-                //            Products.Add(new Product() { ProductCategoryId = y.productCategoryId, ProductId = y.productId, Name = y.name, Color = y.color, ListPrice = y.listPrice, ProductNumber = y.productNumber, ModifiedDate = y.modifiedDate, State = DataRowState.Unchanged });
-                //    }
-                //}
+                {
+                    response = await client.GetAsync("productModels");
+                    var content = await response.Content.ReadAsStringAsync();
+                    var dto = JsonSerializer.Deserialize<ProductModelDTO[]>(content);
+                    foreach (var x in dto)
+                    {
+                        ProductModels.Add(new ProductModel() { ProductModelId = x.productModelId, Name = x.name, CatalogDescription = x.catalogDescription, Rowguid = x.rowguid, ModifiedDate = x.modifiedDate, State = DataRowState.Unchanged });
+                        foreach (var y in x.products)
+                            Products.Add(new Product() { ProductCategoryId = y.productCategoryId, ProductId = y.productId, Name = y.name, Color = y.color, ListPrice = y.listPrice, ProductNumber = y.productNumber, ModifiedDate = y.modifiedDate, State = DataRowState.Unchanged });
+                    }
+                }
+                Application.UseWaitCursor = false;
             }
             catch (Exception ex) 
             {
+                Application.UseWaitCursor = false;
                 MessageBox.Show(ex.Message);
             }
         }

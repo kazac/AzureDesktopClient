@@ -20,7 +20,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //builder.Services.AddAuthorizationBuilder()
 //  .AddPolicy("xxx", policy => policy.RequireRole("App.Read"));
 builder.Services.AddAuthorization();
-var cs = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+var conStrBuilder = new SqlConnectionStringBuilder(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"));
+if(builder.Environment.IsDevelopment())
+    conStrBuilder.Password = builder.Configuration["DatabasePassword"];
+
+var cs = conStrBuilder.ConnectionString;
+//var cs = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+
 // add no tracking
 builder.Services.AddDbContext<TestWSContext>(options =>
         options.UseSqlServer(cs, providerOptions => { providerOptions.EnableRetryOnFailure(); }));

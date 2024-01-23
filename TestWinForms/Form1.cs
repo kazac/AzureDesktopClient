@@ -40,14 +40,12 @@ namespace WinFormsApp1
                 }
                 catch (MsalException msalex)
                 {
-                    int a = 2;
-                    //      ResultText.Text = $"Error Acquiring Token:{System.Environment.NewLine}{msalex}";
+                    MessageBox.Show($"Error Acquiring Token:{System.Environment.NewLine}{msalex}");
                 }
             }
             catch (Exception ex)
             {
-                int a = 2;
-                //             ResultText.Text = $"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}";
+                MessageBox.Show($"Unexpected Error Acquiring Token Silently:{System.Environment.NewLine}{ex}");
                 return;
             }
 
