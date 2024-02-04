@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Eraz51;
 
@@ -44,9 +45,6 @@ public partial class TestWSContext : DbContext
     public virtual DbSet<VProductAndDescription> VProductAndDescriptions { get; set; }
 
     public virtual DbSet<VProductModelCatalogDescription> VProductModelCatalogDescriptions { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:AZURE_SQL_CONNECTIONSTRING");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

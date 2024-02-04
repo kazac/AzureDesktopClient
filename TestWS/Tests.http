@@ -1,0 +1,10 @@
+﻿###
+
+POST https://localhost:7192/productCategories
+Content-Type: application/json
+Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+
+{ "Name": "Fred"}
+
+###
+GET https://localhost:7192/productCategories

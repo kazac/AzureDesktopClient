@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualBasic.ApplicationServices;
 using System;
 using System.Collections.Generic;
@@ -82,8 +83,8 @@ namespace WinFormsApp1
         public string token = "";
         public VM()
         {
-           client.BaseAddress = new Uri("https://eraz51.azurewebsites.net");
-           //client.BaseAddress = new Uri("https://localhost:7192");
+            client.BaseAddress = new Uri("https://eraz51.azurewebsites.net");
+            //client.BaseAddress = new Uri("https://localhost:7192");
             ProductCategories = new ObservableCollection<ProductCategory>();
             ProductModels = new BindingList<ProductModel>();
             Products = new BindingList<Product>();
@@ -108,22 +109,23 @@ namespace WinFormsApp1
             {
                 {
                     response = await client.GetAsync("productCategories");
+                    response.EnsureSuccessStatusCode();
                     var content = await response.Content.ReadAsStringAsync();
                     var dto = JsonSerializer.Deserialize<ProductCategoryDTO[]>(content);
                     foreach (var x in dto)
                         ProductCategories.Add(new ProductCategory() { ProductCategoryId = x.productCategoryId, ParentProductCategoryId = x.parentCategoryID, Name = x.name, ModifiedDate = x.modifiedDate });
                 }
-                {
-                    response = await client.GetAsync("productModels");
-                    var content = await response.Content.ReadAsStringAsync();
-                    var dto = JsonSerializer.Deserialize<ProductModelDTO[]>(content);
-                    foreach (var x in dto)
-                    {
-                        ProductModels.Add(new ProductModel() { ProductModelId = x.productModelId, Name = x.name, CatalogDescription = x.catalogDescription, Rowguid = x.rowguid, ModifiedDate = x.modifiedDate, State = DataRowState.Unchanged });
-                        foreach (var y in x.products)
-                            Products.Add(new Product() { ProductCategoryId = y.productCategoryId, ProductId = y.productId, Name = y.name, Color = y.color, ListPrice = y.listPrice, ProductNumber = y.productNumber, ModifiedDate = y.modifiedDate, State = DataRowState.Unchanged });
-                    }
-                }
+                //{
+                //    response = await client.GetAsync("productModels");
+                //    var content = await response.Content.ReadAsStringAsync();
+                //    var dto = JsonSerializer.Deserialize<ProductModelDTO[]>(content);
+                //    foreach (var x in dto)
+                //    {
+                //        ProductModels.Add(new ProductModel() { ProductModelId = x.productModelId, Name = x.name, CatalogDescription = x.catalogDescription, Rowguid = x.rowguid, ModifiedDate = x.modifiedDate, State = DataRowState.Unchanged });
+                //        foreach (var y in x.products)
+                //            Products.Add(new Product() { ProductCategoryId = y.productCategoryId, ProductId = y.productId, Name = y.name, Color = y.color, ListPrice = y.listPrice, ProductNumber = y.productNumber, ModifiedDate = y.modifiedDate, State = DataRowState.Unchanged });
+                //    }
+                //}
                 Application.UseWaitCursor = false;
             }
             catch (Exception ex) 
